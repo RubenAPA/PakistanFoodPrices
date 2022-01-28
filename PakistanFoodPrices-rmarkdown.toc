@@ -1,0 +1,12 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Exploratory Data Analysis (EDA) Report}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Objetivo del análisis}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Tablas de contingencia}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}ANOVAs}{1}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Supuestos del ANOVA}{2}{subsubsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.4}Prueba no paramétrica de Kruskal Wallis}{4}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Gráficos}{5}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Gráfico de líneas}{5}{subsubsection.1.5.1}%
+\contentsline {subsubsection}{\numberline {1.5.2}Gráfico de densidad}{5}{subsubsection.1.5.2}%
+\contentsline {subsubsection}{\numberline {1.5.3}Box plot}{6}{subsubsection.1.5.3}%
+\contentsline {subsection}{\numberline {1.6}Conclusiones}{6}{subsection.1.6}%

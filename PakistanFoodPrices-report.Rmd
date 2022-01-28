@@ -1,0 +1,304 @@
+---
+header-includes:
+- \usepackage{xcolor}
+- \usepackage{ragged2e}
+- \usepackage{float}
+- \usepackage[spanish,mexico]{babel}
+- \usepackage{graphicx}
+- \usepackage{fancyhdr}
+- \usepackage{lipsum}
+- \pagestyle{fancy}
+- \fancyhead[R]{\includegraphics[width=3cm]{ucr.png}}
+- \fancyhead[L]{Agosto}
+- \fancyhead[C]{Trabajo Final}
+- \fancyfoot[L]{Padilla A. Rubén}
+- \fancyfoot[R]{Reporte} 
+- \fancypagestyle{plain}{\pagestyle{fancy}}
+- \setlength{\headsep}{2cm}
+output:
+  bookdown::pdf_document2:
+    toc: yes
+---
+```{r include=FALSE}
+load("final.rda")
+
+library(broom)
+library(dplyr)
+library(car)
+library(summarytools)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
+```
+
+```{r include=FALSE}
+product = "Huevos"
+mediat = "media"
+desvest = "desviacion estandar"
+yeart <- "2019"
+
+eggsall <- eggs %>% filter(year==yeart, cmname==product)
+summary(eggsall)
+```
+
+# Exploratory Data Analysis (EDA) Report
+
+## Objetivo del análisis
+
+Analizar el comportamiento en los precios del producto `r product` en Pakistán para obtener la concentración de los precios en las diferentes provincias, mediante el lenguaje de programación R.
+
+## Tablas de contingencia
+```{r include=FALSE}
+freq <- freq(data1$category)
+freq <- freq[c(-8),]
+freq1 <- freq(data1$admname)
+freq1 <- freq1[c(-5),]
+```
+
+```{r echo=FALSE}
+kable(freq,booktabs=T,caption="Distribución de los productos según su categoría") %>% kable_styling(position="center", latex_options = "HOLD_position")
+
+kable(freq1,booktabs=T,caption="Distribución del producto Eggs - Retail según su Provincia") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+## ANOVAs
+```{r include=FALSE}
+anovapro <- tidy(anovaeggs)
+anovayear <- tidy(anovaeggs1)
+
+anovayear1 <- anovayear
+anovapro1 <- anovapro
+
+sir <- "se rechaza la hipótesis nula al 10% de significancia y si hay diferencias significativas"
+nor <- "no se rechaza la hipótesis nula al 10% de significancia y no hay diferencias significativas"
+```
+
+El p-value para el ANOVA en la tabla **\@ref(tab:ANOVA)** es de **`r anovapro1[1,"p.value"]`**, por lo que **`r sir`** entre las medias.
+
+```{r ANOVA, echo=FALSE}
+kable(anovapro,booktabs=T,caption="ANOVA del precio contra las provincias") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+El p-value del ANOVA en la Tabla **\@ref(tab:ANOVA1)** es de **`r anovayear1[1,"p.value"]`**, por lo que **`r sir`** entre las medias.
+
+```{r ANOVA1, echo=FALSE}
+kable(anovayear,booktabs=T,caption="ANOVA del precio contra los años") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+### Supuestos del ANOVA
+
+```{r include=FALSE}
+# Homogeneidad de las varianzas
+plot(anovaeggs,1)
+levene <- leveneTest(price~admname, data=eggs)
+
+# Normalidad de los errores
+plot(anovaeggs,2)
+hist(anovaeggs$residuals)
+
+shapiro <- shapiro.test(anovaeggs$residuals)
+# Independencia de las observaciones
+plot(anovaeggs,3)
+```
+
+```{r include=FALSE}
+shapiro <- tidy(shapiro)
+levene <- tidy(levene)
+
+sirshap <- "se rechaza la hipótesis nula al 5% de significancia y no se cumple el"
+sirleve <- "se rechaza la hipótesis nula al 5% de significancia y no se cumple el"
+norshap <- "no se rechaza la hipótesis nula al 5% de significancia y se cumple el"
+norleve <- "no se rechaza la hipótesis nula al 5% de significancia y se cumple el"
+```
+
+El p-value de la prueba de shapiro wilk en la Tabla **\@ref(tab:shapiro)** es de **`r shapiro[1,"p.value"]`**, por lo que **`r sirshap`** supuesto de normalidad de los errores.
+
+```{r shapiro, echo=FALSE}
+kable(shapiro,booktabs=T,caption="Prueba de shapiro para el supuesto de normalidad de los errores") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+El p-value de la prueba de levene en la Tabla **\@ref(tab:levene)** es de **`r levene[1,"p.value"]`**, por lo que **`r norleve`** supuesto de homogeneidad de las varianzas.
+
+```{r levene,echo=FALSE}
+kable(levene,booktabs=T,caption="Prueba de levene para el supuesto de homogeneidad de las varianzas") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+Seguidamente se presentan los gráficos correspondientes a cada uno de los supuestos.
+
+```{r Anova, echo=FALSE, fig.align="center", fig.cap=paste0("Normalidad de los errores, homocedasticidad de las varianzas e independencia de las observaciones para el producto ",product," según el precio y las provincias"), fig.height=6, fig.pos="H", fig.width=8}
+par(mfrow=c(2,2))
+plot(anovaeggs)
+```
+
+```{r include=FALSE}
+# Normalidad de los errores
+plot(anovaeggs1,2)
+hist(anovaeggs1$residuals)
+
+shapiro1 <- shapiro.test(anovaeggs1$residuals)
+
+# Homogeneidad de las varianzas
+plot(anovaeggs1,1)
+levene1 <- leveneTest(price~admname, data=eggs)
+
+# Independencia de las observaciones
+plot(anovaeggs1,3)
+```
+
+```{r include=FALSE}
+shapiro1 <- tidy(shapiro1)
+levene1 <- tidy(levene1)
+```
+
+El p-value de la prueba de shapiro wilk en la Tabla **\@ref(tab:shapiro1)** es de **`r shapiro1[1,"p.value"]`**, por lo que **`r sirshap`** supuesto de normalidad de los errores.
+
+```{r shapiro1, echo=FALSE}
+kable(shapiro1,booktabs=T,caption="Prueba de shapiro para el supuesto de normalidad de los errores") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+El p-value de la prueba de levene en la Tabla **\@ref(tab:levene1)** es de **`r levene1[1,"p.value"]`**, por lo que **`r norleve`** supuesto de homogeneidad de las varianzas.
+
+```{r levene1, echo=FALSE}
+kable(levene1,booktabs=T,caption="Prueba de levene para el supuesto de homogeneidad de las varianzas") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+A continuación se pueden observar los diferentes gráficos que corresponden a su respectivo supuesto.
+
+```{r Anova1, echo=FALSE, fig.align="center", fig.cap=paste0("Normalidad de los errores, homocedasticidad de las varianzas e independencia de las observaciones para el producto ",product," según el precio y los años"), fig.height=6,fig.width=8,fig.pos="H"}
+par(mfrow=c(2,2))
+plot(anovaeggs1)
+```
+
+## Prueba no paramétrica de Kruskal Wallis
+
+Ya que no se cumplen los supuestos de los ANOVAs planteados se procede a la realización de la prueba no paramétrica de Kruskal-Wallis, con la cuál se obtienen los siguientes resultados:
+
+```{r include=FALSE}
+kruskal <- kruskal.test(price~admname, data=eggs)
+kruskal1 <- kruskal.test(price~year, data=eggs)
+
+kruskal <- tidy(kruskal)
+kruskal1 <- tidy(kruskal1)
+```
+
+El p-value para la prueba de Kruskal-Wallis en la tabla **\@ref(tab:kruskal)** es de **`r kruskal[1,"p.value"]`**, por lo que **`r sir`** entre las medias.
+```{r kruskal, echo=FALSE}
+kable(kruskal,booktabs=T,caption="Kruskal Wallis del precio contra las provincias") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+El p-value para la prueba de Kruskal-Wallis en la tabla **\@ref(tab:kruskal1)** es de **`r kruskal1[1,"p.value"]`**, por lo que **`r sir`** entre las medias.
+```{r kruskal1, echo=FALSE}
+kable(kruskal1,booktabs=T,caption="Kruskal Wallis del precio contra las provincias") %>% kable_styling(position="center", latex_options = "HOLD_position")
+```
+
+```{r echo=FALSE}
+eggsresum <- eggs %>% group_by(admname) %>% 
+  summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+
+eggsresum1 <- eggs %>% group_by(year) %>% 
+  summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+
+eggsresumbalo <- eggsbalo %>% group_by(year) %>% 
+  dplyr::summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+eggsresumbalo$admname <- "Balochistan"
+
+eggsresumkhy <- eggskhy %>% group_by(year) %>% 
+  dplyr::summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+eggsresumkhy$admname <- "Khyber Pakhtunkhwa"
+
+eggsresumpun <- eggspun %>% group_by(year) %>% 
+  dplyr::summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+eggsresumpun$admname <- "Punjab"
+
+eggsresumsin <- eggssin %>% group_by(year) %>% 
+  dplyr::summarise(media=mean(price),
+            n=n(),
+            SD= sd(price))
+eggsresumsin$admname <- "Sindh"
+```
+
+## Gráficos
+
+### Gráfico de líneas
+```{r include=FALSE}
+eggsresum2 <- eggsresum1 %>% arrange(desc(media))
+eggsresum2$year1 <- as.numeric(as.character(eggsresum2$year))
+
+eggsresum3 <- eggsresum1 %>% arrange(media)
+eggsresum3$year1 <- as.numeric(as.character(eggsresum3$year))
+```
+
+El promedio más alto entre las provincias es de **`r round(eggsresum2[1,"media"])`** PKR para el año **`r eggsresum2[1,"year1"]`** con una desviación estándar de **`r round(eggsresum2[1,"SD"])`**. Por otro lado, el más bajo es de **`r round(eggsresum3[1,"media"])`** PKR para el año **`r eggsresum3[1,"year1"]`** con una desviación estándar de **`r round(eggsresum3[1,"SD"])`**.
+
+En la Figura **\@ref(fig:lineas)**, A=Balochistan, B=Khyber Pakhtunkhwa, C=Punjab y D=Sindh.
+
+```{r lineas, echo=FALSE, fig.align="center", fig.cap=paste0("Promedio del precio (PKR) de ",product," según las provincias y el año"), fig.height=4, fig.pos="H", fig.width=8}
+eggsresumbalo$year1 <- as.numeric(as.character(eggsresumbalo$year))
+eggsresumkhy$year1 <- as.numeric(as.character(eggsresumkhy$year))
+eggsresumpun$year1 <- as.numeric(as.character(eggsresumpun$year))
+eggsresumsin$year1 <- as.numeric(as.character(eggsresumsin$year))
+
+eggsresumbalo <- eggsresumbalo[c(-1),]
+
+figurebalo <- ggplot(eggsresumbalo,aes(x=year1, y=media))+
+  geom_point()+geom_line(color="deepskyblue2")+labs(x="Años",y="Promedio")
+
+figurekhy <- ggplot(eggsresumkhy,aes(x=year1, y=media))+
+  geom_point()+geom_line(color="red")+labs(x="Años",y="Promedio")
+
+figurepun <- ggplot(eggsresumpun,aes(x=year1, y=media))+
+  geom_point()+geom_line(color="slateblue3")+labs(x="Años",y="Promedio")
+
+figuresin <- ggplot(eggsresumsin,aes(x=year1, y=media))+
+  geom_point()+geom_line(color="chartreuse4")+labs(x="Años",y="Promedio")
+
+figure <- ggarrange(figurebalo,figurekhy,figurepun,figuresin,
+                    labels = c("A", "B", "C","D"),
+                    ncol = 2, nrow = 2)
+
+figure
+```
+
+### Gráfico de densidad
+
+En el gráfico se observa que la provincia Balochistan posee una mayor variabilidad en el precio y tiene el promedio más alto (**`r round(eggsresum[1,"media"])`**PKR) entre las cuatro provincias, mientras que Khyber Pakhtunkhwa posee la menor variabilidad, contando con el segundo promedio más alto (**`r round(eggsresum[2,"media"])`**PKR).
+
+```{r densidad,echo=FALSE,fig.cap=paste0("Densidad del precio (PKR) de ",product," en Pakistán según las provincias"), fig.height=4,fig.width=8,fig.align="center",fig.pos="H"}
+leyenda=list(space="Provincias",columns=1)
+ggdensity(eggs,x="price",add="mean",fill="admname",
+          palette = c("darkseagreen4","peru","lightseagreen","lightgoldenrod2"),
+          alpha = .6, xlab = "Precio (PKR)",ylab = "Densidad",
+          linetype="solid")+theme_classic()+
+  theme(legend.position = "right",legend.title = element_text(colour="black",size=10,face="bold"))+
+  guides(fill=guide_legend(title=leyenda))
+```
+
+### Box plot
+
+```{r boxplot,echo=FALSE,fig.cap=paste0("Resumen y comparación en la distribución del precio (PKR) de ",product," según las provincias"),fig.height=4,fig.width=8,fig.align="center",fig.pos="H"}
+ggplot(eggs,aes(x=admname,y=price),)+
+  geom_boxplot(outlier.colour="red", outlier.shape=4,
+                outlier.size=3,fill=c("darkseagreen4","peru","lightseagreen","lightgoldenrod2"))+
+  labs(x="Provincias",y="Precio")+scale_fill_brewer(palette="Dark2")+theme_classic2()
+```
+
+## Conclusiones
+
+El comportamiento de precios para el producto **`r product`** mostró gran variabilidad entre las provincias analizadas, siendo la provincia de Balochistan la que presenta mayores cambios de precios y a su vez, mantiene el promedio del precio por encima de las demás provincias. En contraste, punjab es la provincia con precios promedios más bajos en este mercado.
+
+A nivel nacional, los precios de **`r product`** en Pakistán sufrieron una disminución abrupta para el año 2015, debido a que el promedio de los precios se vio reducido por una sobre oferta a nivel internacional, tendencia que se vio reflejada en las diferentes provincias, sin embargo, para el año 2016 los precios apuntaban al alza, mostrandose para el periodo 2017-2018 crecimiento positivo.
+
+
+
